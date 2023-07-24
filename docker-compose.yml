@@ -1,0 +1,9 @@
+version: "3"
+networks:
+  mjevents:
+
+services:
+  events-db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
