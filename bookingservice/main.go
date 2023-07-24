@@ -13,7 +13,7 @@ func main() {
 	confPath := flag.String("config", "./lib/configuration/config.json", "path to config file")
 	flag.Parse()
 	config, err := configuration.ExtractConfiguration(*confPath)
-	dblayer, err := dblayer.NewPersistenceLayer(config.Databasetype, config.DBConnection)
+	dbLayer, err := dblayer.NewPersistenceLayer(config.Databasetype, config.DBConnection)
 	if err != nil {
 		panic(err)
 	}
@@ -22,10 +22,9 @@ func main() {
 		panic(err)
 	}
 	eventListener, err := msgqueue_amqp.NewAMQPEventListener(conn, "events")
-
 	if err != nil {
 		panic(err)
 	}
-	processor := &listener.EventProcessor{eventListener, dblayer}
+	processor := &listener.EventProcessor{EventListener: eventListener, Database: dbLayer}
 	go processor.ProcessEvents()
 }
