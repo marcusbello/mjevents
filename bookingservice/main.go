@@ -22,6 +22,7 @@ func main() {
 		panic(err)
 	}
 	eventListener, err := msgqueue_amqp.NewAMQPEventListener(conn, "events")
+
 	if err != nil {
 		panic(err)
 	}
