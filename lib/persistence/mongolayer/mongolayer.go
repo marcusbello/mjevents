@@ -2,7 +2,7 @@ package mongolayer
 
 import (
 	"github.com/marcusbello/mjevents/lib/persistence"
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -21,6 +21,7 @@ func NewMongoDBLayer(connection string) (*MongoDBLayer, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &MongoDBLayer{
 		session: s,
 	}, err
