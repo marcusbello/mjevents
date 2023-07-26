@@ -98,7 +98,7 @@ func (eh *eventServiceHandler) NewEventHandler(w http.ResponseWriter, r *http.Re
 		Name:       event.Name,
 		Start:      time.Unix(event.StartDate, 0),
 		End:        time.Unix(event.EndDate, 0),
-		LocationID: string(event.Location.ID),
+		LocationID: event.Location.ID.String(),
 	}
 	eh.eventEmitter.Emit(&msg)
 
