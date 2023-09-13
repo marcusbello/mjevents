@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	DB     = "mjevents"
-	USERS  = "users"
-	EVENTS = "events"
+	DB        = "mjevents"
+	USERS     = "users"
+	EVENTS    = "events"
+	LOCATIONS = "locations"
 )
 
 type MongoDBLayer struct {
@@ -22,23 +23,39 @@ type MongoDBLayer struct {
 	client  *mongo.Client
 }
 
-func NewMongoDBLayer(connection string) (*MongoDBLayer, error) {
-	s, err := mgo.Dial(connection)
-	if err != nil {
-		return nil, err
-	}
+func (mgoLayer *MongoDBLayer) AddUser(user persistence.User) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://127.0.0.1"))
-	if err != nil {
-		return nil, err
-	}
-	defer client.Disconnect(ctx)
+func (mgoLayer *MongoDBLayer) AddBookingForUser(bytes []byte, booking persistence.Booking) error {
+	//TODO implement me
+	panic("implement me")
+}
 
-	return &MongoDBLayer{
-		session: s,
-		client:  client,
-	}, err
+func (mgoLayer *MongoDBLayer) AddLocation(location persistence.Location) (persistence.Location, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mgoLayer *MongoDBLayer) FindUser(s string, s2 string) (persistence.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mgoLayer *MongoDBLayer) FindBookingsForUser(bytes []byte) ([]persistence.Booking, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mgoLayer *MongoDBLayer) FindLocation(s string) (persistence.Location, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mgoLayer *MongoDBLayer) FindAllLocations() ([]persistence.Location, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (mgoLayer *MongoDBLayer) AddEvent(e persistence.Event) ([]byte, error) {
@@ -97,6 +114,25 @@ func (mgoLayer *MongoDBLayer) FindAllAvailableEvents() ([]persistence.Event,
 	var events []persistence.Event
 	err := s.DB(DB).C(EVENTS).Find(nil).All(&events)
 	return events, err
+}
+
+func NewMongoDBLayer(connection string) (*MongoDBLayer, error) {
+	s, err := mgo.Dial(connection)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connection))
+	if err != nil {
+		return nil, err
+	}
+	defer client.Disconnect(ctx)
+
+	return &MongoDBLayer{
+		session: s,
+		client:  client,
+	}, err
 }
 
 func (mgoLayer *MongoDBLayer) getFreshSession() *mgo.Session {

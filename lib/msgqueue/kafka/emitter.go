@@ -2,7 +2,13 @@ package kafka
 
 import (
 	"encoding/json"
+	"log"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/IBM/sarama"
+	"github.com/marcusbello/mjevents/lib/helper/kafka"
 	"github.com/marcusbello/mjevents/lib/msgqueue"
 )
 
@@ -15,18 +21,15 @@ type messageEnvelope struct {
 	Payload   interface{} `json:"payload"`
 }
 
-func (k *kafkaEventEmitter) Emit(event msgqueue.Event) error {
-	envelope := messageEnvelope{event.EventName(), event}
-	jsonBody, err := json.Marshal(&envelope)
-	if err != nil {
-		return err
+func NewKafkaEventEmitterFromEnvironment() (msgqueue.EventEmitter, error) {
+	brokers := []string{"localhost:9092"}
+
+	if brokerList := os.Getenv("KAFKA_BROKERS"); brokerList != "" {
+		brokers = strings.Split(brokerList, ",")
 	}
-	msg := &sarama.ProducerMessage{
-		Topic: event.EventName(),
-		Value: sarama.ByteEncoder(jsonBody),
-	}
-	_, _, err = k.producer.SendMessage(msg)
-	return err
+
+	client := <-kafka.RetryConnect(brokers, 5*time.Second)
+	return NewKafkaEventEmitter(client)
 }
 
 func NewKafkaEventEmitter(client sarama.Client) (msgqueue.EventEmitter, error) {
@@ -34,8 +37,30 @@ func NewKafkaEventEmitter(client sarama.Client) (msgqueue.EventEmitter, error) {
 	if err != nil {
 		return nil, err
 	}
-	emitter := &kafkaEventEmitter{
+
+	emitter := kafkaEventEmitter{
 		producer: producer,
 	}
-	return emitter, nil
+
+	return &emitter, nil
+}
+
+func (k *kafkaEventEmitter) Emit(evt msgqueue.Event) error {
+	jsonBody, err := json.Marshal(messageEnvelope{
+		evt.EventName(),
+		evt,
+	})
+	if err != nil {
+		return err
+	}
+
+	msg := &sarama.ProducerMessage{
+		Topic: "events",
+		Value: sarama.ByteEncoder(jsonBody),
+	}
+
+	log.Printf("published message with topic %s: %v", evt.EventName(), jsonBody)
+	_, _, err = k.producer.SendMessage(msg)
+
+	return err
 }

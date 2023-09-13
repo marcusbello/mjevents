@@ -4,7 +4,7 @@ import (
 	"github.com/marcusbello/mjevents/contracts"
 	"github.com/marcusbello/mjevents/lib/msgqueue"
 	"github.com/marcusbello/mjevents/lib/persistence"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 )
 
@@ -33,7 +33,8 @@ func (p *EventProcessor) handleEvent(event msgqueue.Event) {
 	switch e := event.(type) {
 	case *contracts.EventCreatedEvent:
 		log.Printf("event %s created: %s", e.ID, e)
-		p.Database.AddEvent(persistence.Event{ID: bson.ObjectId(e.ID)})
+		objectID, _ := primitive.ObjectIDFromHex(e.ID)
+		p.Database.AddEvent(persistence.Event{ID: objectID})
 	case *contracts.LocationCreatedEvent:
 		log.Printf("location %s created: %v", e.ID, e)
 		// TODO: No persistence for locations, yet

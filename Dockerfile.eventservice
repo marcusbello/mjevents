@@ -1,0 +1,20 @@
+FROM golang:1.9
+
+WORKDIR /mjevents-backend
+
+COPY . .
+
+WORKDIR eventservice
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o eventservice
+
+
+FROM scratch
+
+COPY --from=0 /mjevents-backend/eventservice/eventservice /eventservice
+
+ENV LISTEN_URL=0.0.0.0:8181
+
+EXPOSE 8181
+
+CMD ["/eventservice"]
