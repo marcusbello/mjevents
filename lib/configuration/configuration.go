@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	DBTypeDefault              = dblayer.DBTYPE("mongodb")
-	DBConnectionDefault        = "mongodb://127.0.0.1"
+	DBTypeDefault              = dblayer.DBTYPE("redis")
+	DBConnectionDefault        = "localhost:6379"
 	RestfulEPDefault           = "localhost:8181"
 	MessageBrokerTypeDefault   = "amqp"
 	AMQPMessageBrokerDefault   = "amqp://guest:guest@localhost:5672"

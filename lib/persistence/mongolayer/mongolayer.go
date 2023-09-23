@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
@@ -91,28 +90,61 @@ func (mgoLayer *MongoDBLayer) AddEvent(e persistence.Event) ([]byte, error) {
 }
 
 func (mgoLayer *MongoDBLayer) FindEvent(id []byte) (persistence.Event, error) {
-	s := mgoLayer.getFreshSession()
-	defer s.Close()
+	//s := mgoLayer.getFreshSession()
+	//defer s.Close()
 	e := persistence.Event{}
-	err := s.DB(DB).C(EVENTS).FindId(bson.ObjectId(id)).One(&e)
+	var err error
+	//err := s.DB(DB).C(EVENTS).FindId(bson.ObjectId(id)).One(&e)
 	return e, err
 }
 
 func (mgoLayer *MongoDBLayer) FindEventByName(name string) (persistence.Event,
 	error) {
-	s := mgoLayer.getFreshSession()
-	defer s.Close()
+	//s := mgoLayer.getFreshSession()
+	//defer s.Close()
+	var err error
 	e := persistence.Event{}
-	err := s.DB(DB).C(EVENTS).Find(bson.M{"name": name}).One(&e)
+	//err := s.DB(DB).C(EVENTS).Find(bson.M{"name": name}).One(&e)
 	return e, err
 }
 
 func (mgoLayer *MongoDBLayer) FindAllAvailableEvents() ([]persistence.Event,
 	error) {
-	s := mgoLayer.getFreshSession()
-	defer s.Close()
+	//s := mgoLayer.getFreshSession()
+	//defer s.Close()
+	//c := mgoLayer.client.Database(DB)
+	//collection := c.Collection(EVENTS)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Access the collection
+	collection := mgoLayer.client.Database(DB).Collection(EVENTS)
+
+	//ctx := context.TODO()
 	var events []persistence.Event
-	err := s.DB(DB).C(EVENTS).Find(nil).All(&events)
+
+	// Define an empty filter to match all documents
+	filter := primitive.M{}
+
+	// Perform the find operation
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Iterate through the cursor and decode the documents
+	//var events []bson.M
+	for cursor.Next(ctx) {
+		var result persistence.Event
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		events = append(events, result)
+	}
+	//var err error
+	//err := s.DB(DB).C(EVENTS).Find(nil).All(&events)
 	return events, err
 }
 
@@ -135,9 +167,9 @@ func NewMongoDBLayer(connection string) (*MongoDBLayer, error) {
 	}, err
 }
 
-func (mgoLayer *MongoDBLayer) getFreshSession() *mgo.Session {
-	return mgoLayer.session.Copy()
-}
+//func (mgoLayer *MongoDBLayer) getFreshSession() *mgo.Session {
+//	return mgoLayer.session.Copy()
+//}
 
 func (mgoLayer *MongoDBLayer) getClientDatabase(database string) *mongo.Database {
 	return mgoLayer.client.Database(database)
